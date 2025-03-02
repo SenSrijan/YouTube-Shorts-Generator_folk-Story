@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Settings | YouTube Shorts Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Account Settings</h1>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <!-- Sidebar Navigation -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Settings</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                        <i class="bi bi-person me-2"></i> Profile
+                    </a>
+                    <a href="#password" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="bi bi-shield-lock me-2"></i> Password
+                    </a>
+                    <a href="#subscription" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="bi bi-credit-card me-2"></i> Subscription
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="bi bi-bell me-2"></i> Notifications
+                    </a>
+                    <a href="#api" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="bi bi-key me-2"></i> API Access
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Account Summary -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Account Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Username:</strong> {{ current_user.username }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ current_user.email }}</p>
+                    <p class="mb-1"><strong>Account Type:</strong> <span class="badge bg-primary">{{ current_user.subscription_tier|capitalize }}</span></p>
+                    <p class="mb-1"><strong>Member Since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                    <p class="mb-0"><strong>Generations This Month:</strong> {{ current_user.monthly_generations }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Profile Settings -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0">Profile Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('dashboard.settings') }}" data-loading>
+                                <input type="hidden" name="action" value="update_profile">
+                                
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" required>
+                                    <div class="form-text">Your username is visible to others if you make your generations public.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" value="{{ current_user.email }}" disabled>
+                                    <div class="form-text">To change your email, please contact support.</div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Password Settings -->
+                <div class="tab-pane fade" id="password">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0">Change Password</h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('dashboard.settings') }}" data-loading>
+                                <input type="hidden" name="action" value="change_password">
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                    <div class="form-text">Use at least 8 characters with a mix of letters, numbers, and symbols.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="submit" class="btn btn-primary">Change Password</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subscription Settings -->
+                <div class="tab-pane fade" id="subscription">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0">Subscription Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h5>Current Plan</h5>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-{{ current_user.subscription_tier }} me-2">{{ current_user.subscription_tier|capitalize }}</span>
+                                        <span class="subscription-status status-{{ current_user.subscription_status }}">
+                                            <span class="status-indicator status-indicator-{{ current_user.subscription_status }}"></span>
+                                            {{ current_user.subscription_status|capitalize }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h5>Subscription Status</h5>
+                                    {% if current_user.subscription_expiry %}
+                                        <p>Renews on {{ current_user.subscription_expiry.strftime('%B %d, %Y') }}</p>
+                                    {% else %}
+                                        <p>No active subscription</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex">
+                                <a href="{{ url_for('subscription.plans') }}" class="btn btn-primary">
+                                    {% if current_user.subscription_tier == 'free' %}
+                                        Upgrade Subscription
+                                    {% else %}
+                                        Manage Subscription
+                                    {% endif %}
+                                </a>
+                                
+                                {% if current_user.subscription_tier != 'free' and current_user.subscription_status == 'active' %}
+                                    <form action="{{ url_for('subscription.cancel') }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger" data-confirm="Are you sure you want to cancel your subscription? You will retain access until the end of your billing period.">
+                                            Cancel Subscription
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                            
+                            {% if current_user.subscription_tier != 'free' %}
+                                <hr class="my-4">
+                                
+                                <h5>Recent Payments</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                                <th>Plan</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for payment in payments %}
+                                                <tr>
+                                                    <td>{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>
+                                                    <td>${{ payment.amount }}</td>
+                                                    <td>{{ payment.subscription_plan|capitalize }}</td>
+                                                    <td>
+                                                        {% if payment.status == 'succeeded' %}
+                                                            <span class="badge bg-success">Succeeded</span>
+                                                        {% elif payment.status == 'failed' %}
+                                                            <span class="badge bg-danger">Failed</span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning">{{ payment.status|capitalize }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="4" class="text-center">No payment history available</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0">Notification Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('dashboard.settings') }}">
+                                <input type="hidden" name="action" value="update_notifications">
+                                
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_generation" checked>
+                                    <label class="form-check-label" for="email_generation">Email me when my generation is complete</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_payment" checked>
+                                    <label class="form-check-label" for="email_payment">Email me about payment receipts and updates</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_newsletter" checked>
+                                    <label class="form-check-label" for="email_newsletter">Receive our newsletter and product updates</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_marketing">
+                                    <label class="form-check-label" for="email_marketing">Receive marketing and promotional emails</label>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="submit" class="btn btn-primary">Save Preferences</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- API Access Settings -->
+                <div class="tab-pane fade" id="api">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="mb-0">API Access</h3>
+                        </div>
+                        <div class="card-body">
+                            {% if current_user.subscription_tier == 'free' %}
+                                <div class="alert alert-info">
+                                    <h5 class="alert-heading">API Access Requires a Subscription</h5>
+                                    <p class="mb-0">API access is available with Basic and Premium plans. Upgrade your subscription to use our API.</p>
+                                    <a href="{{ url_for('subscription.plans') }}" class="btn btn-primary mt-3">View Subscription Plans</a>
+                                </div>
+                            {% else %}
+                                <p>Manage your API keys to integrate our service with your applications.</p>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                    <a href="{{ url_for('auth.api_keys_list') }}" class="btn btn-primary">
+                                        <i class="bi bi-key"></i> Manage API Keys
+                                    </a>
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <h5>API Limits</h5>
+                                <p>Your current plan ({{ current_user.subscription_tier|capitalize }}) allows:</p>
+                                {% if current_user.subscription_tier == 'basic' %}
+                                    <ul>
+                                        <li>100 API requests per day</li>
+                                        <li>30 generations per month</li>
+                                        <li>Standard processing priority</li>
+                                    </ul>
+                                {% elif current_user.subscription_tier == 'premium' %}
+                                    <ul>
+                                        <li>1000 API requests per day</li>
+                                        <li>Unlimited generations</li>
+                                        <li>High processing priority</li>
+                                    </ul>
+                                {% endif %}
+                                
+                                <div class="alert alert-warning mt-3">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    Never share your API keys or commit them to public repositories. Treat them like passwords.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle tab navigation persistence
+    const hash = window.location.hash;
+    if (hash) {
+        const tab = document.querySelector(`.list-group-item[href="${hash}"]`);
+        if (tab) {
+            const tabTrigger = new bootstrap.Tab(tab);
+            tabTrigger.show();
+        }
+    }
+    
+    // Update URL when tabs are changed
+    const tabElements = document.querySelectorAll('.list-group-item');
+    tabElements.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            history.replaceState(null, null, e.target.getAttribute('href'));
+            
+            // Update active class
+            tabElements.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+    
+    // Password confirmation validation
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    if (newPassword && confirmPassword) {
+        confirmPassword.addEventListener('input', function() {
+            if (newPassword.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity("Passwords don't match");
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+        
+        newPassword.addEventListener('input', function() {
+            if (newPassword.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity("Passwords don't match");
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

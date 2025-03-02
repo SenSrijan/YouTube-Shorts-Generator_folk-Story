@@ -1,120 +1,467 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FolkTales - YouTube Shorts Generator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
-      body { font-family: "Poppins", sans-serif; background-color: #f8f9ff; }
-      .btn-gradient { background: linear-gradient(135deg, #ff7e5f, #feb47b); transition: all 0.3s ease; }
-      .btn-gradient:hover { background: linear-gradient(135deg, #ff6e4f, #fea46b); transform: translateY(-2px); }
-      .content-preview { max-height: 150px; overflow-y: auto; cursor: pointer; transition: transform 0.3s ease-in-out; }
-      .content-preview:hover { transform: scale(1.05); }
-      .full-content { display: none; padding: 10px; background: #f9f9f9; border-radius: 5px; }
-      .loader { display: none; border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #ff7e5f; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: auto; }
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-  </head>
-  <body>
-    <nav class="bg-white shadow-md p-4">
-      <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <span class="text-2xl font-bold text-gray-800">FolkTales</span>
-        <div>
-          <a href="/" class="text-gray-700 mx-4">Home</a>
-          <a href="/history" class="text-gray-700">History</a>
+{% extends "base.html" %}
+
+{% block title %}YouTube Shorts Generator - Create AI-Powered YouTube Shorts{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="mb-4">Create Engaging YouTube Shorts in Minutes</h1>
+                <p class="lead mb-4">Automatically generate compelling folk stories from around the world, complete with voiceovers and scene descriptions - perfect for creating unique YouTube Shorts content.</p>
+                <div class="d-flex gap-3">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-light btn-lg">Go to Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg">Get Started</a>
+                        <a href="#features" class="btn btn-outline-light btn-lg">Learn More</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="{{ url_for('static', filename='img/hero-image.svg') }}" alt="YouTube Shorts Generator" class="img-fluid">
+            </div>
         </div>
-      </div>
-    </nav>
+    </div>
+</section>
 
-    <main class="max-w-7xl mx-auto px-4 py-12">
-      <h1 class="text-center text-4xl font-extrabold">Folk Tales for YouTube Shorts</h1>
-      <p class="text-center text-lg text-gray-500 mt-3">Generate engaging folk stories ready for YouTube Shorts.</p>
-      
-      <div class="bg-white shadow-xl rounded-lg p-6 mt-8">
-        <form id="generation-form" class="space-y-4">
-          <label for="country" class="block font-medium">Country or Culture</label>
-          <input type="text" id="country" required class="w-full p-2 border rounded-md" placeholder="e.g., Japan, Ireland, India" />
-          <button type="submit" class="w-full py-2 text-white font-medium btn-gradient">Generate Content</button>
-        </form>
-      </div>
-
-      <div id="loading-spinner" class="loader mt-4"></div>
-
-      <div id="results-container" class="hidden mt-6">
-        <div class="bg-green-100 p-4 rounded-lg">
-          <p id="results-message" class="text-green-700 font-medium"></p>
+<!-- Try It Now Section (for non-authenticated users) -->
+{% if not current_user.is_authenticated %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">Try It Now</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="generation-form">
+                            <div class="mb-3">
+                                <label for="country-input" class="form-label">Enter a Country Name</label>
+                                <input type="text" id="country-input" class="form-control form-control-lg" placeholder="e.g., Japan, Brazil, Morocco" required>
+                                <div class="form-text">We'll generate a folk story from this country.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">Generate Content</button>
+                        </form>
+                        
+                        <!-- Loading Spinner -->
+                        <div id="loading-spinner" class="text-center my-5 d-none">
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Generating your YouTube Short content...</p>
+                            <p class="text-muted">This may take up to a minute. Please don't refresh the page.</p>
+                        </div>
+                        
+                        <!-- Results Container -->
+                        <div id="result-container" class="mt-4 d-none">
+                            <h4 class="mb-4">Generated Content Preview</h4>
+                            
+                            <div class="accordion" id="previewAccordion">
+                                <!-- Story Preview -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#storyPreview">
+                                            Story
+                                        </button>
+                                    </h2>
+                                    <div id="storyPreview" class="accordion-collapse collapse show" data-bs-parent="#previewAccordion">
+                                        <div class="accordion-body">
+                                            <pre id="story-preview" class="generation-content"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Voiceover Preview -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#voiceoverPreview">
+                                            Voiceover Script
+                                        </button>
+                                    </h2>
+                                    <div id="voiceoverPreview" class="accordion-collapse collapse" data-bs-parent="#previewAccordion">
+                                        <div class="accordion-body">
+                                            <pre id="voiceover-preview" class="generation-content"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Scenes Preview -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#scenesPreview">
+                                            Scene Descriptions
+                                        </button>
+                                    </h2>
+                                    <div id="scenesPreview" class="accordion-collapse collapse" data-bs-parent="#previewAccordion">
+                                        <div class="accordion-body">
+                                            <pre id="scenes-preview" class="generation-content"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Download Links -->
+                            <div id="download-container" class="mt-4 text-center d-none">
+                                <p class="mb-3">Want to use this content? Sign up to download the full results!</p>
+                                <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Create an Account</a>
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="generated-content" class="mt-4"></div>
-      </div>
-    </main>
+    </div>
+</section>
+{% endif %}
 
-    <script>
-      document.getElementById("generation-form").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const country = document.getElementById("country").value.trim();
-        if (!country) return alert("Please enter a country or culture.");
-
-        document.getElementById("loading-spinner").style.display = "block";
-        document.getElementById("results-container").classList.add("hidden");
-
-        try {
-          const response = await fetch("/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ country })
-          });
-          const data = await response.json();
-
-          if (!response.ok) return alert("Error: " + data.error);
-          
-          document.getElementById("results-message").textContent = data.message;
-          document.getElementById("generated-content").innerHTML = `
-            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("story")'>
-              <h3 class='text-lg font-semibold'>Folk Story</h3>
-              <p class='text-sm text-gray-600 mt-2'>${data.preview.story_preview}</p>
-              <a href='${data.paths.story_path}' class='text-indigo-600'>Download Story</a>
-              <div id='story' class='full-content'>${data.preview.story}</div>
+<!-- Features Section -->
+<section class="py-5 bg-light" id="features">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">How It Works</h2>
+            <p class="lead">Our AI-powered platform makes creating YouTube Shorts content quick and easy</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="bi bi-globe"></i>
+                        </div>
+                        <h3>1. Choose a Country</h3>
+                        <p>Select any country in the world and our AI will generate an authentic folk story from that culture.</p>
+                    </div>
+                </div>
             </div>
-            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("voiceover")'>
-              <h3 class='text-lg font-semibold'>Voiceover</h3>
-              <p class='text-sm text-gray-600 mt-2'>${data.preview.voiceover_preview}</p>
-              <a href='${data.paths.voiceover_path}' class='text-indigo-600'>Download Voiceover</a>
-              <div id='voiceover' class='full-content'>${data.preview.voiceover}</div>
+            
+            <!-- Feature 2 -->
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="bi bi-cpu"></i>
+                        </div>
+                        <h3>2. AI Generation</h3>
+                        <p>Our advanced AI generates a complete story, voiceover script, and scene descriptions all tailored for YouTube Shorts.</p>
+                    </div>
+                </div>
             </div>
-            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("scenes")'>
-              <h3 class='text-lg font-semibold'>Scenes</h3>
-              <p class='text-sm text-gray-600 mt-2'>${data.preview.scenes_preview}</p>
-              <a href='${data.paths.scenes_path}' class='text-indigo-600'>Download Scenes</a>
-              <div id='scenes' class='full-content'>${data.preview.scenes}</div>
+            
+            <!-- Feature 3 -->
+            <div class="col-md-4">
+                <div class="card h-100 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon">
+                            <i class="bi bi-download"></i>
+                        </div>
+                        <h3>3. Download & Create</h3>
+                        <p>Download your generated content including TTS audio, and use it to create engaging YouTube Shorts videos.</p>
+                    </div>
+                </div>
             </div>
-            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("voiceover_tts")'>
-              <h3 class='text-lg font-semibold'>Voiceover TTS</h3>
-              <p class='text-sm text-gray-600 mt-2'>Voiceover TTS audio is ready.</p>
-              <a href='${data.paths.voiceover_tts_path}' class='text-indigo-600'>Download TTS</a>
-              <div id='voiceover_tts' class='full-content'>${data.preview.voiceover_tts_preview}</div>
-            </div>`;
-          
-          document.getElementById("results-container").classList.remove("hidden");
-        } catch (error) {
-          console.error("Error generating content:", error);
-          alert("An unexpected error occurred.");
-        } finally {
-          document.getElementById("loading-spinner").style.display = "none";
-        }
-      });
+        </div>
+    </div>
+</section>
 
-      function toggleContent(id) {
-        var content = document.getElementById(id);
-        content.style.display = content.style.display === "none" ? "block" : "none";
-      }
-    </script>
-  </body>
-</html>
+<!-- Benefits Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 order-lg-2">
+                <img src="{{ url_for('static', filename='img/benefits.svg') }}" alt="YouTube Shorts Benefits" class="img-fluid mb-4 mb-lg-0">
+            </div>
+            <div class="col-lg-6 order-lg-1">
+                <h2 class="display-5 fw-bold mb-4">Why Use Our YouTube Shorts Generator?</h2>
+                
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h4>Save Time</h4>
+                        <p>Generate complete YouTube Shorts content in minutes instead of hours of research and writing.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h4>Unique Content</h4>
+                        <p>Create culturally authentic stories that stand out from generic YouTube content.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-4">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h4>Complete Package</h4>
+                        <p>Get the story, voiceover script, audio, and scene descriptions all in one place.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle-fill text-primary fs-4"></i>
+                    </div>
+                    <div>
+                        <h4>API Access</h4>
+                        <p>Integrate with your content workflow through our developer-friendly API.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-5 bg-light" id="pricing">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Choose Your Plan</h2>
+            <p class="lead">Select the plan that best fits your content creation needs</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <!-- Free Plan -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card pricing-card h-100">
+                    <div class="pricing-header">
+                        <h3>Free</h3>
+                        <div class="pricing-price">$0</div>
+                        <p>per month</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul class="list-unstyled">
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Generate up to 3 YouTube Shorts per month
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Basic story generation
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Standard voiceover quality
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Web access only
+                            </li>
+                        </ul>
+                        
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.subscription_tier == 'free' %}
+                                <button class="btn btn-lg btn-outline-primary w-100" disabled>Current Plan</button>
+                            {% else %}
+                                <button class="btn btn-lg btn-outline-primary w-100" onclick="handleCheckout('free')">Downgrade</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-lg btn-outline-primary w-100">Get Started</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Basic Plan -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card pricing-card pricing-popular h-100">
+                    <div class="pricing-header">
+                        <span class="badge bg-light text-dark position-absolute top-0 end-0 mt-3 me-3">Popular</span>
+                        <h3>Basic</h3>
+                        <div class="pricing-price">$9.99</div>
+                        <p>per month</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul class="list-unstyled">
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Generate up to 30 YouTube Shorts per month
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Advanced story generation
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Premium voiceover quality
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> API access with 100 daily requests
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Download in multiple formats
+                            </li>
+                        </ul>
+                        
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.subscription_tier == 'basic' %}
+                                <button class="btn btn-lg btn-primary w-100" disabled>Current Plan</button>
+                            {% else %}
+                                <button id="checkout-basic" class="btn btn-lg btn-primary w-100" onclick="handleCheckout('basic')">
+                                    {% if current_user.subscription_tier == 'free' %}Upgrade{% else %}Switch Plan{% endif %}
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-lg btn-primary w-100">Choose Basic</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Premium Plan -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card pricing-card h-100">
+                    <div class="pricing-header">
+                        <h3>Premium</h3>
+                        <div class="pricing-price">$29.99</div>
+                        <p>per month</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul class="list-unstyled">
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Unlimited YouTube Shorts generation
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Priority processing
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Highest quality voiceover
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Advanced API access (1000 daily requests)
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Team collaboration features
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> White-label downloads
+                            </li>
+                            <li class="pricing-feature mb-2">
+                                <i class="bi bi-check-circle-fill"></i> Priority support
+                            </li>
+                        </ul>
+                        
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.subscription_tier == 'premium' %}
+                                <button class="btn btn-lg btn-outline-primary w-100" disabled>Current Plan</button>
+                            {% else %}
+                                <button id="checkout-premium" class="btn btn-lg btn-outline-primary w-100" onclick="handleCheckout('premium')">Upgrade</button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-lg btn-outline-primary w-100">Choose Premium</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">What Our Users Say</h2>
+            <p class="lead">Join thousands of content creators who save time with our platform</p>
+        </div>
+        
+        <div class="row">
+            <!-- Testimonial 1 -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="text-warning me-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <div>5.0</div>
+                        </div>
+                        <p class="card-text">"This tool has completely changed my content creation workflow. I can create engaging YouTube Shorts in a fraction of the time it used to take me. The stories are unique and my audience loves them!"</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">JD</div>
+                            <div>
+                                <h5 class="mb-0">James Davies</h5>
+                                <p class="text-muted mb-0">Content Creator</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 2 -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="text-warning me-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </div>
+                            <div>4.5</div>
+                        </div>
+                        <p class="card-text">"The cultural authenticity of the stories generated by this tool is impressive. It's helped me create educational content about different cultures that feels genuine and respectful."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">ML</div>
+                            <div>
+                                <h5 class="mb-0">Maria Lopez</h5>
+                                <p class="text-muted mb-0">Educational Creator</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="text-warning me-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <div>5.0</div>
+                        </div>
+                        <p class="card-text">"As a travel content creator, I use this tool to supplement my videos with local stories and legends. It's been an invaluable resource for creating engaging YouTube Shorts that complement my longer content."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">AK</div>
+                            <div>
+                                <h5 class="mb-0">Alex Kim</h5>
+                                <p class="text-muted mb-0">Travel Vlogger</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="display-5 fw-bold mb-4">Ready to Transform Your YouTube Shorts?</h2>
+        <p class="lead mb-4">Join thousands of content creators who are saving time and creating engaging content with our tool.</p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-light btn-lg">Go to Your Dashboard</a>
+        {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg me-3">Get Started for Free</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">Login</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

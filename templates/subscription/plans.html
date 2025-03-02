@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Plans | YouTube Shorts Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Choose Your Plan</h1>
+        <p class="lead">Select the plan that best fits your content creation needs</p>
+    </div>
+    
+    {% if current_user.subscription_status == 'active' and current_user.subscription_tier != 'free' %}
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+            <div>
+                <h5 class="mb-1">You're currently on the {{ current_user.subscription_tier|capitalize }} plan</h5>
+                <p class="mb-0">
+                    {% if current_user.subscription_expiry %}
+                        Your subscription will renew on {{ current_user.subscription_expiry.strftime('%B %d, %Y') }}.
+                    {% endif %}
+                    Changing plans will take effect immediately.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row g-4 justify-content-center">
+        <!-- Free Plan -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 pricing-card {% if current_user.subscription_tier == 'free' %}border-primary{% endif %}">
+                {% if current_user.subscription_tier == 'free' %}
+                <div class="position-absolute top-0 start-50 translate-middle">
+                    <span class="badge bg-primary px-3 py-2">Current Plan</span>
+                </div>
+                {% endif %}
+                <div class="pricing-header">
+                    <h3>Free</h3>
+                    <div class="pricing-price">$0</div>
+                    <p>per month</p>
+                </div>
+                <div class="pricing-features">
+                    <ul class="list-unstyled">
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Generate up to 3 YouTube Shorts per month
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Basic story generation
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Standard voiceover quality
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Web access only
+                        </li>
+                        <li class="pricing-feature mb-2 text-muted">
+                            <i class="bi bi-x-circle-fill"></i> No API access
+                        </li>
+                        <li class="pricing-feature mb-2 text-muted">
+                            <i class="bi bi-x-circle-fill"></i> No analytics
+                        </li>
+                    </ul>
+                    
+                    {% if current_user.subscription_tier == 'free' %}
+                        <button class="btn btn-lg btn-outline-primary w-100" disabled>Current Plan</button>
+                    {% else %}
+                        <form action="{{ url_for('subscription.checkout', plan_name='free') }}" method="GET">
+                            <button type="submit" class="btn btn-lg btn-outline-primary w-100">Downgrade to Free</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Basic Plan -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 pricing-card pricing-popular {% if current_user.subscription_tier == 'basic' %}border-primary{% endif %}">
+                {% if current_user.subscription_tier == 'basic' %}
+                <div class="position-absolute top-0 start-50 translate-middle">
+                    <span class="badge bg-primary px-3 py-2">Current Plan</span>
+                </div>
+                {% endif %}
+                <div class="pricing-header">
+                    <span class="badge bg-light text-dark position-absolute top-0 end-0 mt-3 me-3">Popular</span>
+                    <h3>Basic</h3>
+                    <div class="pricing-price">$9.99</div>
+                    <p>per month</p>
+                </div>
+                <div class="pricing-features">
+                    <ul class="list-unstyled">
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Generate up to 30 YouTube Shorts per month
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Advanced story generation
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Premium voiceover quality
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> API access with 100 daily requests
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Download in multiple formats
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Basic analytics
+                        </li>
+                    </ul>
+                    
+                    {% if current_user.subscription_tier == 'basic' %}
+                        <button class="btn btn-lg btn-primary w-100" disabled>Current Plan</button>
+                    {% else %}
+                        <form action="{{ url_for('subscription.checkout', plan_name='basic') }}" method="GET">
+                            <button type="submit" id="checkout-basic" class="btn btn-lg btn-primary w-100">
+                                {% if current_user.subscription_tier == 'free' %}Upgrade{% else %}Switch Plan{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Premium Plan -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 pricing-card {% if current_user.subscription_tier == 'premium' %}border-primary{% endif %}">
+                {% if current_user.subscription_tier == 'premium' %}
+                <div class="position-absolute top-0 start-50 translate-middle">
+                    <span class="badge bg-primary px-3 py-2">Current Plan</span>
+                </div>
+                {% endif %}
+                <div class="pricing-header">
+                    <h3>Premium</h3>
+                    <div class="pricing-price">$29.99</div>
+                    <p>per month</p>
+                </div>
+                <div class="pricing-features">
+                    <ul class="list-unstyled">
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> <strong>Unlimited</strong> YouTube Shorts generation
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Priority processing
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Highest quality voiceover
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Advanced API access (1000 daily requests)
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Team collaboration features
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> White-label downloads
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Advanced analytics
+                        </li>
+                        <li class="pricing-feature mb-2">
+                            <i class="bi bi-check-circle-fill"></i> Priority support
+                        </li>
+                    </ul>
+                    
+                    {% if current_user.subscription_tier == 'premium' %}
+                        <button class="btn btn-lg btn-outline-primary w-100" disabled>Current Plan</button>
+                    {% else %}
+                        <form action="{{ url_for('subscription.checkout', plan_name='premium') }}" method="GET">
+                            <button type="submit" id="checkout-premium" class="btn btn-lg btn-outline-primary w-100">Upgrade</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Plan Comparison -->
+    <div class="card mt-5">
+        <div class="card-header">
+            <h3 class="mb-0">Plan Comparison</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Feature</th>
+                            <th scope="col" class="text-center">Free</th>
+                            <th scope="col" class="text-center">Basic</th>
+                            <th scope="col" class="text-center">Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Monthly Generations</th>
+                            <td class="text-center">3</td>
+                            <td class="text-center">30</td>
+                            <td class="text-center">Unlimited</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Story Quality</th>
+                            <td class="text-center">Basic</td>
+                            <td class="text-center">Advanced</td>
+                            <td class="text-center">Premium</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Voiceover Quality</th>
+                            <td class="text-center">Standard</td>
+                            <td class="text-center">High</td>
+                            <td class="text-center">Studio</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">API Access</th>
+                            <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                            <td class="text-center">100 daily requests</td>
+                            <td class="text-center">1000 daily requests</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Analytics</th>
+                            <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                            <td class="text-center">Basic</td>
+                            <td class="text-center">Advanced</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">White-label Downloads</th>
+                            <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                            <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                            <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Priority Support</th>
+                            <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                            <td class="text-center"><i class="bi bi-x text-danger"></i></td>
+                            <td class="text-center"><i class="bi bi-check text-success"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Section -->
+    <div class="card mt-5 mb-5">
+        <div class="card-header">
+            <h3 class="mb-0">Frequently Asked Questions</h3>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            How does billing work?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="faqOne" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            All plans are billed monthly. You can upgrade, downgrade, or cancel your subscription at any time. If you upgrade, you'll be charged the prorated amount for the remainder of your billing cycle. If you downgrade, the change will take effect at the end of your current billing cycle.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            What happens if I reach my monthly generation limit?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="faqTwo" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Once you reach your monthly generation limit, you won't be able to generate new content until the next billing cycle or until you upgrade to a higher tier. You'll still have access to your previously generated content and all other features of your plan.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            Can I cancel my subscription anytime?
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="faqThree" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes, you can cancel your subscription at any time. When you cancel, you'll continue to have access to your plan's features until the end of your current billing cycle. After that, your account will automatically downgrade to the Free tier.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            What payment methods do you accept?
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="faqFour" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We accept all major credit cards, including Visa, Mastercard, American Express, and Discover. Payment processing is handled securely by Stripe.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faqFive">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                            Do you offer refunds?
+                        </button>
+                    </h2>
+                    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="faqFive" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We don't typically offer refunds for subscription payments. However, if you're experiencing issues with our service, please contact our support team, and we'll work with you to resolve any problems.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.subscription_tier != 'free' %}
+    <!-- Cancel Subscription Section -->
+    <div class="card mb-5 border-danger">
+        <div class="card-header bg-danger bg-opacity-10 text-danger">
+            <h5 class="mb-0">Cancel Subscription</h5>
+        </div>
+        <div class="card-body">
+            <p>If you wish to cancel your subscription, you can do so below. Your plan benefits will remain active until the end of your current billing cycle.</p>
+            <form action="{{ url_for('subscription.cancel') }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger" data-confirm="Are you sure you want to cancel your subscription? You will retain access until the end of your billing period.">
+                    Cancel My Subscription
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

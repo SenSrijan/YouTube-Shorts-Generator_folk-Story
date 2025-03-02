@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}My Generations | YouTube Shorts Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Generations</h1>
+        <a href="{{ url_for('index') }}#generation-form" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> New Generation
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('dashboard.generations') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="country" class="form-label">Country</label>
+                    <input type="text" id="country" name="country" class="form-control" value="{{ country }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">Date From</label>
+                    <input type="date" id="date_from" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">Date To</label>
+                    <input type="date" id="date_to" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Generation List -->
+    {% if generations.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Country</th>
+                        <th>Date</th>
+                        <th>Views</th>
+                        <th>Downloads</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for generation in generations.items %}
+                        <tr>
+                            <td>{{ generation.country }}</td>
+                            <td>{{ generation.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ generation.view_count }}</td>
+                            <td>{{ generation.download_count }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('dashboard.view_generation', generation_id=generation.generation_id) }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <div class="dropdown d-inline">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-download"></i> Download
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='story') }}">Story</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='voiceover') }}">Voiceover Script</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='audio') }}">Audio File</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='scenes') }}">Scene Descriptions</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='all') }}">All Files (ZIP)</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if generations.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if generations.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('dashboard.generations', page=generations.prev_num, country=country, date_from=date_from, date_to=date_to) }}">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i> Previous</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in generations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == generations.page %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('dashboard.generations', page=page_num, country=country, date_from=date_from, date_to=date_to) }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if generations.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('dashboard.generations', page=generations.next_num, country=country, date_from=date_from, date_to=date_to) }}">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Next <i class="bi bi-chevron-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-camera-video fs-1 text-muted"></i>
+            <h3 class="mt-3">No Generations Found</h3>
+            <p class="text-muted">You haven't generated any YouTube Shorts content yet, or no results match your filter criteria.</p>
+            <a href="{{ url_for('index') }}#generation-form" class="btn btn-primary mt-3">
+                Create Your First YouTube Short
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

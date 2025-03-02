@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}View Generation | YouTube Shorts Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('dashboard.generations') }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Back to Generations
+            </a>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download"></i> Download
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='story') }}">Story</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='voiceover') }}">Voiceover Script</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='audio') }}">Audio File</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='scenes') }}">Scene Descriptions</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='all') }}">All Files (ZIP)</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Generation Info Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-9">
+                    <h1 class="mb-0">{{ generation.country }} Folk Story</h1>
+                    <p class="text-muted mt-1">Generated on {{ generation.timestamp.strftime('%B %d, %Y at %H:%M') }}</p>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <div class="d-flex flex-column align-items-md-end">
+                        <div class="badge bg-info mb-2">
+                            <i class="bi bi-eye"></i> {{ generation.view_count }} views
+                        </div>
+                        <div class="badge bg-success">
+                            <i class="bi bi-download"></i> {{ generation.download_count }} downloads
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs for Different Content Types -->
+    <ul class="nav nav-tabs" id="contentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="story-tab" data-bs-toggle="tab" data-bs-target="#story" type="button" role="tab" aria-controls="story" aria-selected="true">
+                <i class="bi bi-book"></i> Story
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="voiceover-tab" data-bs-toggle="tab" data-bs-target="#voiceover" type="button" role="tab" aria-controls="voiceover" aria-selected="false">
+                <i class="bi bi-mic"></i> Voiceover Script
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="audio-tab" data-bs-toggle="tab" data-bs-target="#audio" type="button" role="tab" aria-controls="audio" aria-selected="false">
+                <i class="bi bi-file-earmark-music"></i> Audio
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="scenes-tab" data-bs-toggle="tab" data-bs-target="#scenes" type="button" role="tab" aria-controls="scenes" aria-selected="false">
+                <i class="bi bi-camera"></i> Scenes
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content" id="contentTabsContent">
+        <!-- Story Tab -->
+        <div class="tab-pane fade show active" id="story" role="tabpanel" aria-labelledby="story-tab">
+            <div class="card border-top-0 rounded-0 rounded-bottom">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h3>Folk Story</h3>
+                        <button class="btn btn-sm btn-outline-primary copy-button" data-copy-target="story-content">
+                            <i class="bi bi-clipboard"></i> Copy to Clipboard
+                        </button>
+                    </div>
+                    <div class="generation-content" id="story-content">
+                        {{ content.story|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Voiceover Tab -->
+        <div class="tab-pane fade" id="voiceover" role="tabpanel" aria-labelledby="voiceover-tab">
+            <div class="card border-top-0 rounded-0 rounded-bottom">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h3>Voiceover Script</h3>
+                        <button class="btn btn-sm btn-outline-primary copy-button" data-copy-target="voiceover-content">
+                            <i class="bi bi-clipboard"></i> Copy to Clipboard
+                        </button>
+                    </div>
+                    <div class="generation-content" id="voiceover-content">
+                        {{ content.voiceover|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audio Tab -->
+        <div class="tab-pane fade" id="audio" role="tabpanel" aria-labelledby="audio-tab">
+            <div class="card border-top-0 rounded-0 rounded-bottom">
+                <div class="card-body">
+                    <h3 class="mb-4">Voiceover Audio</h3>
+                    <div class="text-center mb-4">
+                        <audio controls class="w-100">
+                            <source src="/{{ generation.voiceover_tts_path }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ url_for('dashboard.download_file', generation_id=generation.generation_id, file_type='audio') }}" class="btn btn-primary">
+                            <i class="bi bi-download"></i> Download Audio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scenes Tab -->
+        <div class="tab-pane fade" id="scenes" role="tabpanel" aria-labelledby="scenes-tab">
+            <div class="card border-top-0 rounded-0 rounded-bottom">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h3>Scene Descriptions</h3>
+                        <button class="btn btn-sm btn-outline-primary copy-button" data-copy-target="scenes-content">
+                            <i class="bi bi-clipboard"></i> Copy to Clipboard
+                        </button>
+                    </div>
+                    <div class="generation-content" id="scenes-content">
+                        {{ content.scenes|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.subscription_tier != 'free' %}
+    <!-- Usage Tips for Paid Tiers -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Pro Tips for Using Your Content</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="bi bi-camera-video"></i> Creating Your YouTube Short</h6>
+                    <ul>
+                        <li>Use the scene descriptions to create visuals for each part of the story</li>
+                        <li>Keep your short under 60 seconds for optimal viewing</li>
+                        <li>Add captions to increase engagement</li>
+                        <li>Use the downloadable audio file as your voiceover</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="bi bi-graph-up"></i> Optimizing for Views</h6>
+                    <ul>
+                        <li>Include the country name in your title and description</li>
+                        <li>Add relevant hashtags like #FolkStories #{{ generation.country }}Culture</li>
+                        <li>Post at optimal times (3-9pm in your target audience's timezone)</li>
+                        <li>Create a series of shorts from different countries</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+h1 {
+    color: #ff4444; /* YouTube red */
+}
+
+.navbar-brand {
+    color: #ff4444 !important;
+    font-weight: bold;
+}
+
+.navbar-dark .nav-link {
+    color: #fff;
+}
+
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link.active {
+    color: #ff4444;
+}
+
+.btn-primary {
+    background-color: #ff4444;
+    border-color: #ff4444;
+}
+
+.btn-primary:hover {
+    background-color: #cc0000;
+    border-color: #cc0000;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+pre {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.02);
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #ff4444;
+    color: white;
+    border-color: #ff4444;
+}
+
+.nav-tabs .nav-link {
+    color: #ff4444;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #cc0000;
+}

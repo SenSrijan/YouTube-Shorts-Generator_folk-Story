@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}API Keys | YouTube Shorts Generator{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>API Keys</h1>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    {% if current_user.subscription_tier == 'free' %}
+    <div class="alert alert-info">
+        <div class="d-flex">
+            <div class="me-3">
+                <i class="bi bi-info-circle-fill fs-4"></i>
+            </div>
+            <div>
+                <h5 class="alert-heading">API Access Requires a Subscription</h5>
+                <p class="mb-0">API access is available with Basic and Premium plans only. Upgrade your subscription to create and use API keys.</p>
+                <a href="{{ url_for('subscription.plans') }}" class="btn btn-primary mt-3">View Subscription Plans</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="mb-0">Create New API Key</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('auth.create_api_key') }}">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <label for="api-key-name" class="form-label">Key Name</label>
+                        <input type="text" id="api-key-name" name="name" class="form-control" placeholder="e.g., Production, Development" required>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-key"></i> Generate New API Key
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">Your API Keys</h3>
+            <span class="badge bg-primary">
+                {{ current_user.subscription_tier|capitalize }} Tier: 
+                {% if current_user.subscription_tier == 'basic' %}
+                    100 daily requests
+                {% elif current_user.subscription_tier == 'premium' %}
+                    1000 daily requests
+                {% endif %}
+            </span>
+        </div>
+        <div class="card-body">
+            {% if api_keys %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>API Key</th>
+                                <th>Created</th>
+                                <th>Last Used</th>
+                                <th>Status</th>
+                                <th>Usage Today</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key in api_keys %}
+                                <tr>
+                                    <td>{{ key.name }}</td>
+                                    <td>
+                                        <div class="input-group api-key-display">
+                                            <input type="password" id="key-{{ key.id }}" class="form-control font-monospace" value="{{ key.api_key }}" readonly>
+                                            <button class="btn btn-outline-secondary api-key-toggle" type="button" data-key-id="key-{{ key.id }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-primary copy-button" type="button" data-copy-target="key-{{ key.id }}">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ key.last_used.strftime('%Y-%m-%d %H:%M') if key.last_used else 'Never' }}</td>
+                                    <td>
+                                        {% if key.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if current_user.subscription_tier == 'basic' %}
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ (key.daily_requests / 100) * 100 }}%"></div>
+                                            </div>
+                                            <small>{{ key.daily_requests }} / 100</small>
+                                        {% elif current_user.subscription_tier == 'premium' %}
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ (key.daily_requests / 1000) * 100 }}%"></div>
+                                            </div>
+                                            <small>{{ key.daily_requests }} / 1000</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if key.is_active %}
+                                            <form action="{{ url_for('auth.deactivate_api_key', key_id=key.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger" data-confirm="Are you sure you want to deactivate this API key? Any applications using it will lose access.">
+                                                    Deactivate
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-secondary" disabled>Deactivated</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-key fs-1 text-muted"></i>
+                    </div>
+                    <p>You haven't created any API keys yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4 class="mb-0">API Documentation</h4>
+        </div>
+        <div class="card-body">
+            <p>Use our API to generate YouTube Shorts content programmatically. Here's a quick guide to get started:</p>
+            
+            <h5 class="mt-4">Authentication</h5>
+            <p>Include your API key in the request headers:</p>
+            <div class="bg-light p-3 rounded mb-3">
+                <code>X-API-Key: your_api_key_here</code>
+            </div>
+            
+            <h5 class="mt-4">Generate Content</h5>
+            <p>Endpoint: <code>POST /api/v1/generate</code></p>
+            <p>Request body:</p>
+            <pre class="bg-light p-3 rounded"><code>{
+  "country": "Japan"
+}</code></pre>
+            
+            <p>Response:</p>
+            <pre class="bg-light p-3 rounded"><code>{
+  "status": "success",
+  "message": "YouTube Short content for Japan generated successfully",
+  "generation_id": "japan_20230215123456",
+  "paths": {
+    "story_path": "/outputs/japan_20230215123456/story.txt",
+    "voiceover_path": "/outputs/japan_20230215123456/voiceover.txt",
+    "voiceover_tts_path": "/outputs/japan_20230215123456/voiceover_tts.mp3",
+    "scenes_path": "/outputs/japan_20230215123456/scenes.txt"
+  },
+  "content": {
+    "story": "...",
+    "voiceover": "...",
+    "scenes": "..."
+  }
+}</code></pre>
+
+            <h5 class="mt-4">List Generations</h5>
+            <p>Endpoint: <code>GET /api/v1/generations</code></p>
+            <p>Optional query parameters: <code>page</code>, <code>per_page</code>, <code>country</code>, <code>date_from</code>, <code>date_to</code></p>
+            
+            <h5 class="mt-4">Get Generation Details</h5>
+            <p>Endpoint: <code>GET /api/v1/generation/{generation_id}</code></p>
+            
+            <h5 class="mt-4">Download Files</h5>
+            <p>Endpoint: <code>GET /api/v1/download/{generation_id}/{file_type}</code></p>
+            <p>File types: <code>story</code>, <code>voiceover</code>, <code>audio</code>, <code>scenes</code></p>
+            
+            <h5 class="mt-4">Get Usage Statistics</h5>
+            <p>Endpoint: <code>GET /api/v1/user/usage</code></p>
+            
+            <div class="text-center mt-4">
+                <a href="#" class="btn btn-primary">Download Full API Documentation</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

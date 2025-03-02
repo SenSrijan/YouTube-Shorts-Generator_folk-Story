@@ -1,61 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>History - FolkTales</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { font-family: 'Poppins', sans-serif; background-color: #f8f9ff; }
-    .gradient-bg { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
-    .card { transition: all 0.3s ease; }
-    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generation History - FolkTales Shorts Creator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .empty-state {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+        }
+    </style>
 </head>
 <body>
-  <nav class="bg-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex">
-          <div class="flex-shrink-0 flex items-center">
-            <span class="text-2xl font-bold text-gray-800">FolkTales</span>
-            <span class="ml-2 text-sm text-gray-500">YouTube Shorts Generator</span>
-          </div>
-          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-            <a href="/" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-              Home
-            </a>
-            <a href="/history" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-              History
-            </a>
-          </div>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-film text-indigo-600 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold text-gray-800">FolkTales Shorts</span>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-indigo-600">Home</a>
+                    <a href="/history" class="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:text-indigo-600">History</a>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </nav>
+    </nav>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-4xl font-extrabold text-gray-900 mb-8">Generation History</h1>
-    {% if history %}
-      <div class="space-y-4">
-        {% for item in history %}
-          <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Generation ID: {{ item.generation_id }}</h2>
-            <p class="text-gray-600">Country: {{ item.country }}</p>
-            <p class="text-gray-600">Timestamp: {{ item.timestamp }}</p>
-            <a href="/view/{{ item.generation_id }}" class="mt-4 inline-block text-indigo-600 hover:text-indigo-900">
-              View Details &rarr;
-            </a>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="text-gray-600">No generation history available.</p>
-    {% endif %}
-  </main>
-</body>
-</html>
+    <!-- Page Header -->
+    <div class="bg-indigo-600 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                    Your Generation History
+                </h1>
+                <p class="mt-3 max-w-md mx-auto text-base sm:text-lg">
+                    Browse and access all your previously generated folk tale shorts.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Search and Filter -->
+        <div class="mb-8 flex flex-col sm:flex-row gap-4">
+            <div class="flex-grow">
+                <div class="relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md py-2 border" placeholder="Search by country...">
+                </div>
+            </div>
+            <div>
+                <select id="sortSelect" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-3 pr-10 py-2 text-base border-gray-300 sm:text-sm rounded-md border">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="country">Country A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- History Grid -->
+        <div id="historyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% if history %}
+                {% for item in history %}
+                <div class="card bg-white rounded-lg shadow-md overflow-hidden history-item" data-country="{{ item.country|lower }}">
+                    <div class="bg-indigo-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="font-semibold text-indigo-800">{{ item.country }}</h3>
+                        <span class="text-xs text-gray-500">{{ item.timestamp|slice:"0:10" }}</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <div class="bg-gray-50 p-3 rounded-md mb-3 h-24 overflow-hidden">
+                                <p class="text-sm text-gray-600 line-clamp-3">
+                                    {% if files and files.story %}
+                                        {{ files.story|slice:":150" }}...
+                                    {% else %}
+                                        Story preview not available
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 items-center">
+                                <span>Generation ID: {{ item.generation_id|slice:"-8:" }}</span>
+                                <a href="/view/{{ item.generation_id }}" class="text-indigo-600 hover:text-indigo-800 flex items-center">
+                                    <span>View Details</span>
+                                    <i class="fas fa-chevron-right ml-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3 grid grid-cols-3 gap-2">
+                            <a href="/outputs/{{ item.generation_id }}/story.txt" class="flex items-center justify-center text-xs text-gray-600 hover:text-indigo-600 py-1">
+                                <i class="fas fa-book mr-1"></i> Story
+                            </a>
+                            <a href="/outputs/{{ item.generation_id }}/voiceover.txt" class="flex items-center justify-center text-xs text-gray-600 hover:text-indigo-600 py-1">
+                                <i class="fas fa-microphone mr-1"></i> Script
+                            </a>
+                            <a href="/outputs/{{ item.generation_id }}/voiceover_tts.mp3" class="flex items-center justify-center text-xs text-gray-600 hover:text-indigo-600 py-1">
+                                <i class="fas fa-music mr-1"></i> Audio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="col-span-full empty-state rounded-lg p-10 text-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="rounded-full bg-gray-200 p-5 mb-4">
+                            <i class="fas fa-history text-gray-400 text-3xl"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No Generation History Yet</h3>
+                        <p class="text-gray-600 mb-4">Your generated folk tale shorts will appear here once you create them.</p>
+                        <a href="/" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                            Create Your First Short
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if error %}
+        <div class="mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center">
+                        <i class="fas fa-film text-indigo-400 text-2xl mr-2"></i>
+                        <span class="text-xl font-bold">FolkTales Shorts</span>
+                    </div>
+                    <p class="text-gray-400 mt-2">Create engaging YouTube Shorts with cultural folk tales.</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class="fab fa-youtube text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class
