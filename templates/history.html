@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>History - FolkTales</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Poppins', sans-serif; background-color: #f8f9ff; }
+    .gradient-bg { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
+  </style>
+</head>
+<body>
+  <nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-2xl font-bold text-gray-800">FolkTales</span>
+            <span class="ml-2 text-sm text-gray-500">YouTube Shorts Generator</span>
+          </div>
+          <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <a href="/" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              Home
+            </a>
+            <a href="/history" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+              History
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-8">Generation History</h1>
+    {% if history %}
+      <div class="space-y-4">
+        {% for item in history %}
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Generation ID: {{ item.generation_id }}</h2>
+            <p class="text-gray-600">Country: {{ item.country }}</p>
+            <p class="text-gray-600">Timestamp: {{ item.timestamp }}</p>
+            <a href="/view/{{ item.generation_id }}" class="mt-4 inline-block text-indigo-600 hover:text-indigo-900">
+              View Details &rarr;
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-600">No generation history available.</p>
+    {% endif %}
+  </main>
+</body>
+</html>

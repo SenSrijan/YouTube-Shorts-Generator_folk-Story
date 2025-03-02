@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FolkTales - YouTube Shorts Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: "Poppins", sans-serif; background-color: #f8f9ff; }
+      .btn-gradient { background: linear-gradient(135deg, #ff7e5f, #feb47b); transition: all 0.3s ease; }
+      .btn-gradient:hover { background: linear-gradient(135deg, #ff6e4f, #fea46b); transform: translateY(-2px); }
+      .content-preview { max-height: 150px; overflow-y: auto; cursor: pointer; transition: transform 0.3s ease-in-out; }
+      .content-preview:hover { transform: scale(1.05); }
+      .full-content { display: none; padding: 10px; background: #f9f9f9; border-radius: 5px; }
+      .loader { display: none; border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #ff7e5f; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: auto; }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="bg-white shadow-md p-4">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <span class="text-2xl font-bold text-gray-800">FolkTales</span>
+        <div>
+          <a href="/" class="text-gray-700 mx-4">Home</a>
+          <a href="/history" class="text-gray-700">History</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-12">
+      <h1 class="text-center text-4xl font-extrabold">Folk Tales for YouTube Shorts</h1>
+      <p class="text-center text-lg text-gray-500 mt-3">Generate engaging folk stories ready for YouTube Shorts.</p>
+      
+      <div class="bg-white shadow-xl rounded-lg p-6 mt-8">
+        <form id="generation-form" class="space-y-4">
+          <label for="country" class="block font-medium">Country or Culture</label>
+          <input type="text" id="country" required class="w-full p-2 border rounded-md" placeholder="e.g., Japan, Ireland, India" />
+          <button type="submit" class="w-full py-2 text-white font-medium btn-gradient">Generate Content</button>
+        </form>
+      </div>
+
+      <div id="loading-spinner" class="loader mt-4"></div>
+
+      <div id="results-container" class="hidden mt-6">
+        <div class="bg-green-100 p-4 rounded-lg">
+          <p id="results-message" class="text-green-700 font-medium"></p>
+        </div>
+        <div id="generated-content" class="mt-4"></div>
+      </div>
+    </main>
+
+    <script>
+      document.getElementById("generation-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const country = document.getElementById("country").value.trim();
+        if (!country) return alert("Please enter a country or culture.");
+
+        document.getElementById("loading-spinner").style.display = "block";
+        document.getElementById("results-container").classList.add("hidden");
+
+        try {
+          const response = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ country })
+          });
+          const data = await response.json();
+
+          if (!response.ok) return alert("Error: " + data.error);
+          
+          document.getElementById("results-message").textContent = data.message;
+          document.getElementById("generated-content").innerHTML = `
+            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("story")'>
+              <h3 class='text-lg font-semibold'>Folk Story</h3>
+              <p class='text-sm text-gray-600 mt-2'>${data.preview.story_preview}</p>
+              <a href='${data.paths.story_path}' class='text-indigo-600'>Download Story</a>
+              <div id='story' class='full-content'>${data.preview.story}</div>
+            </div>
+            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("voiceover")'>
+              <h3 class='text-lg font-semibold'>Voiceover</h3>
+              <p class='text-sm text-gray-600 mt-2'>${data.preview.voiceover_preview}</p>
+              <a href='${data.paths.voiceover_path}' class='text-indigo-600'>Download Voiceover</a>
+              <div id='voiceover' class='full-content'>${data.preview.voiceover}</div>
+            </div>
+            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("scenes")'>
+              <h3 class='text-lg font-semibold'>Scenes</h3>
+              <p class='text-sm text-gray-600 mt-2'>${data.preview.scenes_preview}</p>
+              <a href='${data.paths.scenes_path}' class='text-indigo-600'>Download Scenes</a>
+              <div id='scenes' class='full-content'>${data.preview.scenes}</div>
+            </div>
+            <div class='p-4 border rounded-lg bg-white shadow-md mt-4 content-preview' onclick='toggleContent("voiceover_tts")'>
+              <h3 class='text-lg font-semibold'>Voiceover TTS</h3>
+              <p class='text-sm text-gray-600 mt-2'>Voiceover TTS audio is ready.</p>
+              <a href='${data.paths.voiceover_tts_path}' class='text-indigo-600'>Download TTS</a>
+              <div id='voiceover_tts' class='full-content'>${data.preview.voiceover_tts_preview}</div>
+            </div>`;
+          
+          document.getElementById("results-container").classList.remove("hidden");
+        } catch (error) {
+          console.error("Error generating content:", error);
+          alert("An unexpected error occurred.");
+        } finally {
+          document.getElementById("loading-spinner").style.display = "none";
+        }
+      });
+
+      function toggleContent(id) {
+        var content = document.getElementById(id);
+        content.style.display = content.style.display === "none" ? "block" : "none";
+      }
+    </script>
+  </body>
+</html>
